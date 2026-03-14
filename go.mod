@@ -1,4 +1,4 @@
-module github.com/initial-commit-hq/mongodb-adapter/v3
+module github.com/initial-commit-hq/casbin-mongodb-adapter/v3
 
 go 1.25.0
 
