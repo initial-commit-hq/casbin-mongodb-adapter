@@ -21,11 +21,10 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/mongo-driver/v2/mongo"
-
-	"github.com/casbin/casbin/v2"
-	"github.com/casbin/casbin/v2/util"
+	"github.com/casbin/casbin/v3"
+	"github.com/casbin/casbin/v3/util"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	mongooptions "go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
@@ -48,7 +47,7 @@ func getReplicaSetURL() string {
 
 func testGetPolicy(t *testing.T, e *casbin.Enforcer, res [][]string) {
 	t.Helper()
-	myRes := e.GetPolicy()
+	myRes, _ := e.GetPolicy()
 	t.Log("Policy: ", myRes)
 
 	if !util.Array2DEquals(res, myRes) {
@@ -57,7 +56,7 @@ func testGetPolicy(t *testing.T, e *casbin.Enforcer, res [][]string) {
 }
 
 func testGetPolicyWithoutOrder(t *testing.T, e *casbin.Enforcer, res [][]string) {
-	myRes := e.GetPolicy()
+	myRes, _ := e.GetPolicy()
 
 	if !arrayEqualsWithoutOrder(myRes, res) {
 		t.Error("Policy: ", myRes, ", supposed to be ", res)
@@ -167,7 +166,11 @@ func TestAdapter(t *testing.T) {
 	e.EnableAutoSave(false)
 	// Because AutoSave is disabled, the policy change only affects the policy in Casbin enforcer,
 	// it doesn't affect the policy in the storage.
-	e.AddPolicy("alice", "data1", "write")
+	addPolicy, err := e.AddPolicy("alice", "data1", "write")
+	if err != nil {
+		t.Errorf("Expected AddPolicy() to be successful; got %v", err)
+	}
+	t.Log("Policy added: ", addPolicy)
 	// Reload the policy from the storage to see the effect.
 	if err := e.LoadPolicy(); err != nil {
 		t.Errorf("Expected LoadPolicy() to be successful; got %v", err)
@@ -186,7 +189,11 @@ func TestAdapter(t *testing.T) {
 
 	// Because AutoSave is enabled, the policy change not only affects the policy in Casbin enforcer,
 	// but also affects the policy in the storage.
-	e.AddPolicy("alice", "data1", "write")
+	addPolicy, err = e.AddPolicy("alice", "data1", "write")
+	if err != nil {
+		t.Errorf("Expected AddPolicy() to be successful; got %v", err)
+	}
+	t.Log("Policy added: ", addPolicy)
 	// Reload the policy from the storage to see the effect.
 	if err := e.LoadPolicy(); err != nil {
 		t.Errorf("Expected LoadPolicy() to be successful; got %v", err)
